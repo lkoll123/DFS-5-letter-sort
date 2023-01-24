@@ -1,0 +1,23 @@
+import pygame
+
+list = ["word", "ford", "bord", "chord", "lord"]
+pygame.init()
+screen = pygame.display.set_mode((500, 500))
+#pygame.display.set_caption('5 letter Dict')
+font = pygame.font.SysFont('inkfree',30,italic=True,bold=True)
+
+for word in list:
+    
+    text = font.render(word,True,(255,255,255))
+    textrect = text.get_rect()
+
+    
+    screen.fill((131, 37, 97))
+    screen.blit(text, textrect)
+
+    for events in pygame.event.get():
+        if events.type == pygame.QUIT:
+            pygame.quit()
+            quit()
+
+    pygame.display.update()
