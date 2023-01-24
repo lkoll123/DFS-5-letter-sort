@@ -1,0 +1,150 @@
+import pygame
+import networkx as nx
+import matplotlib.pyplot as plt
+import string
+class Stack:
+    def __init__(self):
+        self.items = []
+
+    def isEmpty(self):
+        #return a boolean that says whether the list is empty
+        return len(self.items) == 0
+    def push(self, element):
+        self.items.append(element)
+
+    def pop(self):
+        return self.items.pop()
+    def peek(self):
+        return self.items[len(self.items) - 1]
+    def size(self):
+        return len(self.items)
+
+
+#Depth First Search method; takes in start value, end(target) value, and Adjacency list that defines graph; returns list of established path between start and end value
+def depth_first_search(start, end, adjL):
+    #Stack visited holds all values of current path between start and end value
+    visited = Stack()
+    output = Stack()
+    #stack curretnIndeces holds all indeces of the nodes held in stack visited
+    currentIndeces = Stack()
+    #list vis holds ll visited nodes; solely for purpose of comparing with neighbors of a node to check to see if node has unvisited neighbors
+    vis = []
+    #list fin; estblished path will be added to fin; return list
+    fin = []
+    #finding start value in adjacency list
+    for x in range(0, len(adjL)):
+        if(adjL[x][0] == start):
+            currentIndeces.push(x)
+
+            visited.push(adjL[x][0])
+            vis.append(adjL[x][0])
+            #iterates through algorithm for as long as final value in visited is not equal to end value
+            while(visited.peek()!= end):
+
+                for y in range(1, len(adjL[currentIndeces.peek()])):
+                    #push first unvisited neighbor of top of stack to top of stack; if no unvisited neighbors pop
+                    #find first unvisited neighbor, check to see if current neighbor has been visited or not
+                    has_no_neighbors1 = False
+                    for t in range(0, len(vis)):
+                        if(adjL[currentIndeces.peek()][y] == vis[t]):
+                            has_no_neighbors1 = True
+                    if(has_no_neighbors1):
+                        #if we are at final neighbor of node, this will mean current node has no unvisited neighbors; pop from visited and currentIndeces
+                        if(y == len(adjL[currentIndeces.peek()]) - 1):
+                            currentIndeces.pop()
+                            output.push(visited.pop)
+                    else:
+                        visited.push(adjL[currentIndeces.peek()][y])
+                        vis.append(adjL[currentIndeces.peek()][y])
+                        #finding index and adjacency list of current unvisited neighbor
+                        for a in range(0, len(adjL)):
+                            if(adjL[currentIndeces.peek()][y] == adjL[a][0]):
+                                currentIndeces.push(a)
+                                break
+                        if(visited.peek() == end):
+                            break
+                        #checking to see if this unvisited neighbor itself has unvisited neighbors
+                        for g in range(1, len(adjL[currentIndeces.peek()])):
+                            has_neighbors = True
+                            for h in range(0, len(vis)):
+                                if(adjL[currentIndeces.peek()][g] == vis[h]):
+                                    has_neighbors = False
+                            if(has_neighbors):
+                                break
+                        if(has_neighbors):
+                            break
+                        #if no unvisited neighbors, pop from currentindeces and visited
+                        else:
+                            output.push(visited.pop())
+                            currentIndeces.pop()
+    #writing all values in visited to list fin
+    for x in range(0, visited.size()):
+        fin.insert(0, visited.pop())
+
+    return fin
+
+
+#function adjacency_list takes in a nodelist of all 5 letter words, and creates an adjacency list where all adjacent nodes are words that are 1 letter away
+def adjacency_list(node_list):
+    adj_list = []
+    for node in range(0, len(node_list)):
+
+        temp_list = []
+        temp_list.append(node_list[node])
+        for comparison in range(0, len(node_list)):
+            count = 0
+            for letter in range(0, len(node_list[comparison])):
+                if(node_list[node][letter] != node_list[comparison][letter]):
+                    count += 1
+            if count == 1:
+                temp_list.append(node_list[comparison])
+        adj_list.append(temp_list)
+
+    return adj_list
+
+def runSim(path):
+    pygame.init()
+    w=500
+    h=500
+    screen = pygame.display.set_mode((w, h))
+    #pygame.display.set_caption('5 letter Dict')
+    font = pygame.font.SysFont('inkfree',100,italic=True,bold=True)
+
+    for word in path:
+
+        pygame.time.delay(100)
+        text = font.render(word,True,(255,255,255))
+        text_rect = text.get_rect(center=(w/2, h/2))
+
+
+        screen.fill((131, 37, 97))
+        screen.blit(text, text_rect)
+
+        for events in pygame.event.get():
+            if events.type == pygame.QUIT:
+                pygame.quit()
+                quit()
+
+        pygame.display.update()
+
+#creating list of all 5 letter words from file "5_letter_Dict.txt"
+myPath=r"5LetterWords.txt"
+
+my_file = open(myPath, "r")
+
+data = my_file.read()
+five_letter_dict = data.replace('\n', ' ').split(" ")
+five_letter_dict.pop()##for some reason the list wont stay at 5757 words and adds a line so it mixes up the algorithm
+##print(five_letter_dict)
+
+my_file.close()
+
+startWord="parts"
+endWord="print"
+
+##used to print the path of the depth first search but also in the pygame sim
+path = depth_first_search(startWord,endWord, adjacency_list(five_letter_dict))
+
+print("Path of the words is: ")
+print(path)
+runSim(path)
